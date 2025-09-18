@@ -10,11 +10,12 @@ import QuickActionButton from '../components/QuickActionButton';
 import BottomTabBar from '../components/BottomTabBar';
 
 export default function HomeScreen() {
-  const upcomingAssignments = mockAssignments
-    .filter(assignment => assignment.status === 'pending')
-    .slice(0, 3);
+  try {
+    const upcomingAssignments = mockAssignments
+      .filter(assignment => assignment.status === 'pending')
+      .slice(0, 3);
 
-  const recentAnnouncements = mockAnnouncements.slice(0, 3);
+    const recentAnnouncements = mockAnnouncements.slice(0, 3);
 
   return (
     <SafeAreaView style={commonStyles.container}>
@@ -61,6 +62,17 @@ export default function HomeScreen() {
       <BottomTabBar />
     </SafeAreaView>
   );
+  } catch (error) {
+    console.error('Error in HomeScreen:', error);
+    return (
+      <SafeAreaView style={commonStyles.container}>
+        <View style={[commonStyles.content, commonStyles.centerContent]}>
+          <Text style={commonStyles.text}>Something went wrong loading the home screen.</Text>
+        </View>
+        <BottomTabBar />
+      </SafeAreaView>
+    );
+  }
 }
 
 const styles = StyleSheet.create({

@@ -7,6 +7,7 @@ export const colors = {
   accent: '#F5A623',       // Orange/yellow - highlights and important info
   background: '#FFFFFF',   // White background
   backgroundAlt: '#F8F9FA', // Light gray background
+  surface: '#FFFFFF',      // Surface color for cards and modals
   text: '#2C3E50',         // Dark gray text
   textSecondary: '#7F8C8D', // Medium gray text
   success: '#27AE60',      // Green for success states

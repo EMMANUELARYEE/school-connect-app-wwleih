@@ -11,17 +11,25 @@ interface QuickActionButtonProps {
 }
 
 const QuickActionButton: React.FC<QuickActionButtonProps> = ({ action }) => {
-  const handlePress = () => {
-    console.log(`Navigating to ${action.route}`);
-    // For now, we'll just log since we haven't implemented all routes yet
-    if (action.route === '/schedule') {
-      router.push('/schedule');
-    } else if (action.route === '/assignments') {
-      router.push('/assignments');
-    } else if (action.route === '/profile') {
-      router.push('/profile');
-    } else {
-      console.log(`Route ${action.route} not implemented yet`);
+  const handlePress = async () => {
+    try {
+      console.log(`Attempting to navigate to ${action.route}`);
+      
+      // Handle navigation with proper error handling
+      const validRoutes = ['/schedule', '/assignments', '/profile'];
+      
+      if (validRoutes.includes(action.route)) {
+        console.log(`Navigating to valid route: ${action.route}`);
+        await router.push(action.route as any);
+        console.log(`Successfully navigated to ${action.route}`);
+      } else {
+        console.log(`Route ${action.route} not implemented yet`);
+        // Show a user-friendly message for unimplemented routes
+        console.warn(`Feature "${action.title}" is coming soon!`);
+      }
+    } catch (error) {
+      console.error('Navigation error in QuickActionButton:', error);
+      // Handle navigation errors gracefully without throwing
     }
   };
 

@@ -10,19 +10,19 @@ const clearErrorAfterDelay = (errorKey: string) => {
 
 // Function to send errors to parent window (React frontend)
 const sendErrorToParent = (level: string, message: string, data: any) => {
-  // Create a simple key to identify duplicate errors
-  const errorKey = `${level}:${message}:${JSON.stringify(data)}`;
-
-  // Skip if we've seen this exact error recently
-  if (recentErrors[errorKey]) {
-    return;
-  }
-
-  // Mark this error as seen and schedule cleanup
-  recentErrors[errorKey] = true;
-  clearErrorAfterDelay(errorKey);
-
   try {
+    // Create a simple key to identify duplicate errors
+    const errorKey = `${level}:${message}:${JSON.stringify(data).substring(0, 100)}`;
+
+    // Skip if we've seen this exact error recently
+    if (recentErrors[errorKey]) {
+      return;
+    }
+
+    // Mark this error as seen and schedule cleanup
+    recentErrors[errorKey] = true;
+    clearErrorAfterDelay(errorKey);
+
     if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
       window.parent.postMessage({
         type: 'EXPO_ERROR',
@@ -96,6 +96,27 @@ const getCallerInfo = (): string => {
 };
 
 export const setupErrorLogging = () => {
+  console.log('Setting up error logging...');
+  
+  // Set up global promise rejection handler for React Native
+  if (typeof global !== 'undefined' && !global.__promiseRejectionHandled) {
+    global.__promiseRejectionHandled = true;
+    
+    // Override the default promise rejection handler
+    const originalHandler = global.Promise;
+    if (originalHandler) {
+      // Add a global unhandled rejection listener
+      process?.on?.('unhandledRejection', (reason, promise) => {
+        console.error('🚨 UNHANDLED PROMISE REJECTION (Node):', reason);
+        sendErrorToParent('error', 'Unhandled Promise Rejection (Node)', {
+          reason: reason?.toString() || 'Unknown reason',
+          stack: reason?.stack || 'No stack trace',
+          timestamp: new Date().toISOString()
+        });
+      });
+    }
+  }
+
   // Capture unhandled errors in web environment
   if (typeof window !== 'undefined') {
     // Override window.onerror to catch JavaScript errors
@@ -118,13 +139,21 @@ export const setupErrorLogging = () => {
     if (Platform.OS === 'web') {
       // Capture unhandled promise rejections
       window.addEventListener('unhandledrejection', (event) => {
+        try {
           const errorData = {
-          reason: event.reason,
-          timestamp: new Date().toISOString()
-        };
+            reason: event.reason?.toString() || 'Unknown promise rejection',
+            stack: event.reason?.stack || 'No stack trace available',
+            timestamp: new Date().toISOString()
+          };
 
-        console.error('🚨 UNHANDLED PROMISE REJECTION:', errorData);
-        sendErrorToParent('error', 'Unhandled Promise Rejection', errorData);
+          console.error('🚨 UNHANDLED PROMISE REJECTION:', errorData);
+          sendErrorToParent('error', 'Unhandled Promise Rejection', errorData);
+          
+          // Prevent the default unhandled rejection behavior
+          event.preventDefault();
+        } catch (error) {
+          console.error('Error handling promise rejection:', error);
+        }
       });
     }
   }

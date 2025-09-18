@@ -22,9 +22,15 @@ const tabs: TabItem[] = [
 const BottomTabBar: React.FC = () => {
   const pathname = usePathname();
 
-  const handleTabPress = (route: string) => {
-    console.log(`Navigating to ${route}`);
-    router.push(route as any);
+  const handleTabPress = async (route: string) => {
+    try {
+      console.log(`Navigating to ${route}`);
+      await router.push(route as any);
+      console.log(`Successfully navigated to ${route}`);
+    } catch (error) {
+      console.error('Navigation error in BottomTabBar:', error);
+      // Handle navigation errors gracefully
+    }
   };
 
   return (

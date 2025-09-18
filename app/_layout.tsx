@@ -4,6 +4,8 @@ import { Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import { setupErrorLogging } from '../utils/errorLogger';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import React from 'react';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const STORAGE_KEY = 'emulated_device';
 
@@ -13,22 +15,36 @@ export default function RootLayout() {
   const [storedEmulate, setStoredEmulate] = useState<string | null>(null);
 
   useEffect(() => {
-    // Set up global error logging
-    setupErrorLogging();
+    const initializeApp = async () => {
+      try {
+        console.log('Initializing app...');
+        
+        // Set up global error logging
+        setupErrorLogging();
+        
+        console.log('Error logging setup complete');
 
-    if (Platform.OS === 'web') {
-      // If there's a new emulate parameter, store it
-      if (emulate) {
-        localStorage.setItem(STORAGE_KEY, emulate);
-        setStoredEmulate(emulate);
-      } else {
-        // If no emulate parameter, try to get from localStorage
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          setStoredEmulate(stored);
+        if (Platform.OS === 'web') {
+          // If there's a new emulate parameter, store it
+          if (emulate) {
+            localStorage.setItem(STORAGE_KEY, emulate);
+            setStoredEmulate(emulate);
+          } else {
+            // If no emulate parameter, try to get from localStorage
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+              setStoredEmulate(stored);
+            }
+          }
         }
+        
+        console.log('App initialization complete');
+      } catch (error) {
+        console.error('Error in RootLayout initialization:', error);
       }
-    }
+    };
+
+    initializeApp();
   }, [emulate]);
 
   let insetsToUse = actualInsets;
@@ -45,7 +61,8 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <Stack
             screenOptions={{
@@ -54,6 +71,7 @@ export default function RootLayout() {
             }}
           />
         </GestureHandlerRootView>
-    </SafeAreaProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }

@@ -109,44 +109,52 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
 
   // Handles pan gesture events with boundary clamping
   const onGestureEvent = (event: any) => {
-    const { translationY } = event.nativeEvent;
-    lastGestureY.current = translationY;
+    try {
+      const { translationY } = event.nativeEvent;
+      lastGestureY.current = translationY;
 
-    const currentBasePosition = SCREEN_HEIGHT - currentSnapPoint;
-    const intendedPosition = currentBasePosition + translationY;
-
-    const minPosition = SCREEN_HEIGHT - SNAP_POINTS.FULL;
-    const maxPosition = SCREEN_HEIGHT;
-
-    const clampedPosition = Math.max(minPosition, Math.min(maxPosition, intendedPosition));
-    const clampedTranslation = clampedPosition - currentBasePosition;
-
-    gestureTranslateY.setValue(clampedTranslation);
-  };
-
-  // Handles gesture state changes (begin/end) for snapping behavior
-  const onHandlerStateChange = (event: any) => {
-    const { state, translationY, velocityY } = event.nativeEvent;
-
-    if (state === State.BEGAN) {
-      startPositionY.current = SCREEN_HEIGHT - currentSnapPoint;
-    } else if (state === State.END) {
       const currentBasePosition = SCREEN_HEIGHT - currentSnapPoint;
       const intendedPosition = currentBasePosition + translationY;
 
       const minPosition = SCREEN_HEIGHT - SNAP_POINTS.FULL;
       const maxPosition = SCREEN_HEIGHT;
 
-      const finalY = Math.max(minPosition, Math.min(maxPosition, intendedPosition));
-      const targetSnapPoint = getClosestSnapPoint(finalY, velocityY);
+      const clampedPosition = Math.max(minPosition, Math.min(maxPosition, intendedPosition));
+      const clampedTranslation = clampedPosition - currentBasePosition;
 
-      gestureTranslateY.setValue(0);
+      gestureTranslateY.setValue(clampedTranslation);
+    } catch (error) {
+      console.error('Error in onGestureEvent:', error);
+    }
+  };
 
-      if (targetSnapPoint === SNAP_POINTS.CLOSED) {
-        onClose?.();
-      } else {
-        snapToPoint(targetSnapPoint);
+  // Handles gesture state changes (begin/end) for snapping behavior
+  const onHandlerStateChange = (event: any) => {
+    try {
+      const { state, translationY, velocityY } = event.nativeEvent;
+
+      if (state === State.BEGAN) {
+        startPositionY.current = SCREEN_HEIGHT - currentSnapPoint;
+      } else if (state === State.END) {
+        const currentBasePosition = SCREEN_HEIGHT - currentSnapPoint;
+        const intendedPosition = currentBasePosition + translationY;
+
+        const minPosition = SCREEN_HEIGHT - SNAP_POINTS.FULL;
+        const maxPosition = SCREEN_HEIGHT;
+
+        const finalY = Math.max(minPosition, Math.min(maxPosition, intendedPosition));
+        const targetSnapPoint = getClosestSnapPoint(finalY, velocityY);
+
+        gestureTranslateY.setValue(0);
+
+        if (targetSnapPoint === SNAP_POINTS.CLOSED) {
+          onClose?.();
+        } else {
+          snapToPoint(targetSnapPoint);
+        }
       }
+    } catch (error) {
+      console.error('Error in onHandlerStateChange:', error);
     }
   };
 
@@ -233,7 +241,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: colors.grey || '#cccccc',
+    backgroundColor: colors.textSecondary || '#cccccc',
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 8,
