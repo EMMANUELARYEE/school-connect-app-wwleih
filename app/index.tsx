@@ -1,52 +1,75 @@
-import React, { useState } from 'react';
-import { Text, View, Image, TouchableOpacity } from 'react-native';
-import { commonStyles, colors } from '../styles/commonStyles';
+
+import React from 'react';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SimpleBottomSheet from '../components/BottomSheet';
+import { colors, commonStyles } from '../styles/commonStyles';
+import { mockAnnouncements, mockAssignments, quickActions } from '../data/mockData';
+import AnnouncementCard from '../components/AnnouncementCard';
+import AssignmentCard from '../components/AssignmentCard';
+import QuickActionButton from '../components/QuickActionButton';
+import BottomTabBar from '../components/BottomTabBar';
 
+export default function HomeScreen() {
+  const upcomingAssignments = mockAssignments
+    .filter(assignment => assignment.status === 'pending')
+    .slice(0, 3);
 
-export default function MainScreen() {
-  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
-
-  const handleOpenBottomSheet = () => {
-    setIsBottomSheetVisible(true);
-  };
+  const recentAnnouncements = mockAnnouncements.slice(0, 3);
 
   return (
-      <SafeAreaView style={commonStyles.container}>
-        <View style={commonStyles.content}>
-          <Image
-            source={require('../assets/images/final_quest_240x240.png')}
-            style={{ width: 180, height: 180 }}
-            resizeMode="contain"
-          />
-          <Text style={commonStyles.title}>This is a placeholder app.</Text>
-          <Text style={commonStyles.text}>Your app will be displayed here when it's ready.</Text>
-
-          <TouchableOpacity
-            style={{
-              backgroundColor: colors.primary,
-              paddingHorizontal: 24,
-              paddingVertical: 12,
-              borderRadius: 8,
-              marginTop: 30,
-            }}
-            onPress={handleOpenBottomSheet}
-          >
-            <Text style={{
-              color: colors.text,
-              fontSize: 16,
-              fontWeight: '600',
-            }}>
-              Open Bottom Sheet
-            </Text>
-          </TouchableOpacity>
+    <SafeAreaView style={commonStyles.container}>
+      <ScrollView style={commonStyles.content} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={commonStyles.title}>Good Morning!</Text>
+          <Text style={commonStyles.textSecondary}>Welcome back to your school portal</Text>
         </View>
 
-        <SimpleBottomSheet
-          isVisible={isBottomSheetVisible}
-          onClose={() => setIsBottomSheetVisible(false)}
-        />
-      </SafeAreaView>
+        {/* Quick Actions */}
+        <View style={commonStyles.section}>
+          <Text style={commonStyles.subtitle}>Quick Actions</Text>
+          <View style={styles.quickActionsGrid}>
+            {quickActions.map((action) => (
+              <QuickActionButton key={action.id} action={action} />
+            ))}
+          </View>
+        </View>
+
+        {/* Recent Announcements */}
+        <View style={commonStyles.section}>
+          <Text style={commonStyles.subtitle}>Recent Announcements</Text>
+          {recentAnnouncements.map((announcement) => (
+            <AnnouncementCard key={announcement.id} announcement={announcement} />
+          ))}
+        </View>
+
+        {/* Upcoming Assignments */}
+        <View style={[commonStyles.section, { paddingBottom: 100 }]}>
+          <Text style={commonStyles.subtitle}>Upcoming Assignments</Text>
+          {upcomingAssignments.length > 0 ? (
+            upcomingAssignments.map((assignment) => (
+              <AssignmentCard key={assignment.id} assignment={assignment} />
+            ))
+          ) : (
+            <View style={commonStyles.card}>
+              <Text style={commonStyles.textSecondary}>No upcoming assignments</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      <BottomTabBar />
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    marginBottom: 32,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+});
